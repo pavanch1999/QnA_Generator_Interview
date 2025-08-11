@@ -80,8 +80,8 @@
                 outputDiv.innerHTML = ''; 
 
                 qnaBlocks.forEach((block, index) => {
-                    const questionMatch = block.match(/QUES:\s*(.+)/i);
-                    const answerMatch = block.match(/ANSWER:\s*([\s\S]+)/i);
+                    const questionMatch = block.match(/QUES\s*(.+)/i);
+                    const answerMatch = block.match(/ANSWER\s*([\s\S]+)/i);
 
                     if (questionMatch && answerMatch) {
                         const question = questionMatch[1].trim();
