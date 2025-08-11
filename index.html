@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Job Interview QnA Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        #output {
+            background: white;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            min-height: 100px;
+        }
+        details {
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px;
+            background: #fafafa;
+        }
+        summary {
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Job Interview QnA Generator</h1>
+    <textarea id="jobDesc" rows="6" placeholder="Paste job description here..."></textarea>
+    <button onclick="generateQnA()">Generate QnA</button>
+    <div id="output">Your QnA will appear here...</div>
+
+    <script>
+        async function generateQnA() {
+            const jobDescription = document.getElementById('jobDesc').value.trim();
+            const outputDiv = document.getElementById('output');
+
+            if (!jobDescription) {
+                outputDiv.textContent = "Please enter a job description.";
+                return;
+            }
+
+            outputDiv.textContent = "Generating QnA... please wait.";
+
+            try {
+                const res = await fetch('https://payload.vextapp.com/hook/EWX410BER0/catch/happy', { 
+                    method: "POST", 
+                    headers: { 
+                        "Content-Type": "application/json", 
+                        Apikey: 'Api-Key 1HpZ8xdV.7rJ8NsIvSVIDzrAP3fWzt2eNha8zTBMu' 
+                    }, 
+                    body: JSON.stringify({ 
+                        payload: jobDescription 
+                    }) 
+                });
+
+                const data = await res.json();
+
+                if (!data.text) {
+                    outputDiv.textContent = JSON.stringify(data, null, 2);
+                    return;
+                }
+
+                // Split Q&A pairs
+                const qnaBlocks = data.text.split('\n\n');
+                outputDiv.innerHTML = ''; 
+
+                qnaBlocks.forEach((block, index) => {
+                    const questionMatch = block.match(/Q:\s*(.+)/i);
+                    const answerMatch = block.match(/A:\s*([\s\S]+)/i);
+
+                    if (questionMatch && answerMatch) {
+                        const question = questionMatch[1].trim();
+                        const answer = answerMatch[1].trim();
+
+                        const detailsElem = document.createElement('details');
+                        const summaryElem = document.createElement('summary');
+
+                        // Add numbering here
+                        summaryElem.textContent = `${index + 1}. ${question}`;
+
+                        const answerElem = document.createElement('div');
+                        answerElem.textContent = answer;
+                        answerElem.style.marginTop = '8px';
+
+                        detailsElem.appendChild(summaryElem);
+                        detailsElem.appendChild(answerElem);
+
+                        outputDiv.appendChild(detailsElem);
+                    }
+                });
+
+                if (outputDiv.innerHTML.trim() === '') {
+                    outputDiv.textContent = data.text;
+                }
+
+            } catch (err) {
+                outputDiv.textContent = "Error: " + err.message;
+            }
+        }
+    </script>
+</body>
+</html>
