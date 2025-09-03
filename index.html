@@ -76,28 +76,30 @@
         }
 
         // Use regex to directly extract all QUES/ANSWER pairs
-        const regex = /QUES\s*([\s\S]*?)\s*ANSWER\s*([\s\S]*?)(?=(?:\n\d+\. QUES|\nQUES|$))/gi;
-        const matches = [...data.text.matchAll(regex)];
+       // Use regex to extract **Q:** and **A:** pairs
+const regex = /\*\*Q:\*\*\s*([\s\S]*?)\s*\*\*A:\*\*\s*([\s\S]*?)(?=(?:\n\d+\.|\n---|$))/gi;
+const matches = [...data.text.matchAll(regex)];
 
-        outputDiv.innerHTML = '';
+outputDiv.innerHTML = '';
 
-        matches.forEach((match, index) => {
-          const question = match[1].trim();
-          const answer = match[2].trim();
+matches.forEach((match, index) => {
+  const question = match[1].trim();
+  const answer = match[2].trim();
 
-          const detailsElem = document.createElement('details');
-          const summaryElem = document.createElement('summary');
-          summaryElem.textContent = `${index + 1}. ${question}`;
+  const detailsElem = document.createElement('details');
+  const summaryElem = document.createElement('summary');
+  summaryElem.textContent = `${index + 1}. ${question}`;
 
-          const answerElem = document.createElement('div');
-          answerElem.textContent = answer;
-          answerElem.style.marginTop = '8px';
+  const answerElem = document.createElement('div');
+  answerElem.innerHTML = answer.replace(/\n/g, "<br>"); // keep formatting
+  answerElem.style.marginTop = '8px';
 
-          detailsElem.appendChild(summaryElem);
-          detailsElem.appendChild(answerElem);
+  detailsElem.appendChild(summaryElem);
+  detailsElem.appendChild(answerElem);
 
-          outputDiv.appendChild(detailsElem);
-        });
+  outputDiv.appendChild(detailsElem);
+});
+
 
         if (outputDiv.innerHTML.trim() === '') {
           outputDiv.textContent = data.text;
