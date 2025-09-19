@@ -1,44 +1,158 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "./PhotoFeed.css";
-import { FaHeart, FaRegCopy, FaSave, FaUserCircle } from "react-icons/fa";
-
-const photos = [
-  "https://picsum.photos/id/1018/800/1400",
-  "https://picsum.photos/id/1015/800/1400",
-  "https://picsum.photos/id/1016/800/1400",
-  "https://picsum.photos/id/1021/800/1400",
-  "https://picsum.photos/id/1024/800/1400",
-];
+import {
+  FaHeart,
+  FaRegCopy,
+  FaSave,
+  FaUserCircle,
+  FaComment,
+} from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 function PhotoFeed() {
+  const fallbackPhotos = [
+    { imageUrl: "https://picsum.photos/id/1018/800/1400", prompt: "Beautiful mountains" },
+    { imageUrl: "https://picsum.photos/id/1015/800/1400", prompt: "Peaceful lake" },
+    { imageUrl: "https://picsum.photos/id/1016/800/1400", prompt: "Misty forest" },
+    { imageUrl: "https://picsum.photos/id/1021/800/1400", prompt: "Sunny field" },
+    { imageUrl: "https://picsum.photos/id/1024/800/1400", prompt: "Happy dog" },
+  ];
+
+  const [photos, setPhotos] = useState(fallbackPhotos);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/uploads");
+        const data = await res.json();
+
+        if (data.length > 0) {
+          setPhotos([...fallbackPhotos, ...data]);
+        } else {
+          setPhotos(fallbackPhotos);
+        }
+      } catch (err) {
+        console.error("Error fetching photos:", err);
+        setPhotos(fallbackPhotos);
+      }
+    };
+
+    fetchPhotos();
+  }, []);
+
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("✅ Prompt copied to clipboard!");
+    } catch (err) {
+      console.error("Copy failed:", err);
+    }
+  };
+
+  const handleImageLoad = (e) => {
+    const img = e.target;
+    if (img.naturalWidth > img.naturalHeight) {
+      img.classList.add("landscape");
+    }
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackText.trim()) return alert("Please write some feedback");
+
+    try {
+      const res = await fetch("http://localhost:5000/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: feedbackText }),
+      });
+
+      if (res.ok) {
+        alert("✅ Thanks for your feedback!");
+        setFeedbackText("");
+        setShowFeedback(false);
+      } else {
+        alert("❌ Failed to send feedback");
+      }
+    } catch (err) {
+      console.error("Feedback error:", err);
+      alert("❌ Error sending feedback");
+    }
+  };
+
   return (
     <div className="feed-container">
-      {/* Swiper */}
       <div className="swiper-wrapper">
         <Swiper
           direction="vertical"
           slidesPerView={1}
           spaceBetween={0}
+          onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
         >
-          {photos.map((url, index) => (
+          {photos.map((item, index) => (
             <SwiperSlide key={index}>
               <div className="photo">
-                <img src={url} alt={`photo-${index}`} />
+                <img
+                  src={item.imageUrl}
+                  alt={`photo-${index}`}
+                  onLoad={handleImageLoad}
+                  className={item.width > item.height ? "landscape" : "portrait"}
+                />
               </div>
             </SwiperSlide>
           ))}
         </Swiper>
 
-        {/* Action Buttons */}
-        <div className="action-buttons">
-          <button><FaHeart /></button>
-          <button><FaRegCopy /></button>
-          <button><FaSave /></button>
-          <button><FaUserCircle /></button>
-        </div>
+        {photos.length > 0 && (
+          <div className="action-buttons">
+            <button className="icon-btn">
+              <FaHeart />
+            </button>
+
+            <button
+              className="icon-btn"
+              onClick={() => handleCopy(photos[activeIndex].prompt)}
+            >
+              <FaRegCopy />
+            </button>
+
+            <button className="icon-btn">
+              <FaSave />
+            </button>
+
+            <Link to="/upload" className="icon-btn">
+              <FaUserCircle />
+            </Link>
+
+            {/* New Feedback Button */}
+            <button className="icon-btn" onClick={() => setShowFeedback(true)}>
+              <FaComment />
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Feedback Modal */}
+      {showFeedback && (
+        <div className="feedback-modal">
+          <div className="feedback-box">
+            <h3>Leave Feedback</h3>
+            <textarea
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+              placeholder="Write your thoughts..."
+            />
+            <div className="feedback-actions">
+              <button onClick={handleFeedbackSubmit}>Submit</button>
+              <button onClick={() => setShowFeedback(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
