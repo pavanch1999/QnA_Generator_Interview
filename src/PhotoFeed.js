@@ -14,10 +14,9 @@ import { Link } from "react-router-dom";
 function PhotoFeed() {
   const fallbackPhotos = [
     { imageUrl: "https://picsum.photos/id/1018/800/1400", prompt: "Beautiful mountains" },
-    { imageUrl: "https://picsum.photos/id/1015/800/1400", prompt: "Peaceful lake" },
-    { imageUrl: "https://picsum.photos/id/1016/800/1400", prompt: "Misty forest" },
-    { imageUrl: "https://picsum.photos/id/1021/800/1400", prompt: "Sunny field" },
-    { imageUrl: "https://picsum.photos/id/1024/800/1400", prompt: "Happy dog" },
+    { imageUrl: "https://picsum.photos/400/600?random=1, ?random=2", prompt: "Peaceful lake" },
+    { imageUrl: "https://picsum.photos/400/600?grayscale", prompt: "Misty forest" },
+    
   ];
 
   const [photos, setPhotos] = useState(fallbackPhotos);
